@@ -9,6 +9,7 @@ from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.util import dt as dt_util
 
 from .api import PanasonicApiAuthError, PanasonicApiClient, PanasonicApiError
 from .const import (
@@ -31,6 +32,10 @@ from .profiles import find_profile_for_device_config
 _LOGGER = logging.getLogger(__name__)
 
 POLLING_INTERVAL = timedelta(seconds=15)
+# Control commands are delivered asynchronously: the cloud returns a todoId
+# immediately but the device may lag behind. Within this window we keep the
+# optimistically applied state instead of letting a poll revert it.
+COMMAND_SETTLE_WINDOW = timedelta(seconds=30)
 
 
 def _as_int(value, default=None):
@@ -122,6 +127,9 @@ class PanasonicAirCleanerFan(FanEntity):
         self._attributes = {}
         self._last_params = {}
         self._unsub_polling = None
+        # Optimistic state tracking while an async command is being delivered.
+        self._pending_until = None
+        self._optimistic_state = None
 
     # --- polling ---
 
@@ -208,6 +216,19 @@ class PanasonicAirCleanerFan(FanEntity):
 
         self._last_params = res.copy()
         self._available = True
+        # While an async command is still being delivered the cloud can keep
+        # reporting the previous values; prefer the optimistic state for the
+        # fields we just changed so the UI does not flicker back and forth.
+        if (
+            self._optimistic_state
+            and self._pending_until
+            and dt_util.utcnow() < self._pending_until
+        ):
+            merged = dict(res)
+            merged.update(self._optimistic_state)
+            res = merged
+
+        self._last_params = res.copy()
         self._update_local_state(res)
         return res
 
@@ -276,6 +297,10 @@ class PanasonicAirCleanerFan(FanEntity):
             return
 
         self._available = True
+        # Track the command so polls within the settle window keep showing the
+        # requested state while the device catches up.
+        self._pending_until = dt_util.utcnow() + COMMAND_SETTLE_WINDOW
+        self._optimistic_state = dict(changes)
         self._last_params.update(params)
         self._update_local_state(self._last_params)
         self.async_write_ha_state()

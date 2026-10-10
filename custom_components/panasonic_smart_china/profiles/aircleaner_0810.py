@@ -5,6 +5,7 @@ from __future__ import annotations
 from ..models import (
     ENTITY_KIND_AIRCLEANER,
     PLATFORM_FAN,
+    PLATFORM_SENSOR,
     PROTOCOL_AIRCLEANER,
     PanasonicEndpoint,
     PanasonicProfile,
@@ -65,7 +66,7 @@ AIRCLEANER_0810_PROFILE = PanasonicProfile(
     name="纳诺怡空气净化器 (F-93C0PJD)",
     category_ids=frozenset({"0810"}),
     model_ids=frozenset({"F-93C0PJD"}),
-    ha_platforms=(PLATFORM_FAN,),
+    ha_platforms=(PLATFORM_FAN, PLATFORM_SENSOR),
     entity_kind=ENTITY_KIND_AIRCLEANER,
     protocol=PROTOCOL_AIRCLEANER,
     status_endpoint=PanasonicEndpoint(
