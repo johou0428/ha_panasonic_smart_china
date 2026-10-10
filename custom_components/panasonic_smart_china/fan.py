@@ -280,8 +280,17 @@ class PanasonicAirCleanerFan(FanEntity):
         self._update_local_state(self._last_params)
         self.async_write_ha_state()
 
-    async def async_turn_on(self, **kwargs):
-        await self._send_command({"runSta": 1})
+    async def async_turn_on(self, percentage=None, preset_mode=None, **kwargs):
+        """Turn the air cleaner on.
+
+        NOTE: Home Assistant may invoke this positionally during service
+        handling (async_turn_on(percentage, preset_mode)), so the parameters
+        must be explicit rather than absorbed by **kwargs.
+        """
+        changes = {"runSta": 1}
+        if preset_mode in self._preset_map:
+            changes["airVo"] = self._preset_map[preset_mode]
+        await self._send_command(changes)
 
     async def async_turn_off(self, **kwargs):
         await self._send_command({"runSta": 0})
