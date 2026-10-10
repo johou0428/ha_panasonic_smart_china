@@ -1,8 +1,10 @@
 # Panasonic Smart China for Home Assistant
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![version](https://img.shields.io/badge/version-2.1.0-blue.svg)]()
+[![version](https://img.shields.io/badge/version-2.3.0-blue.svg)]()
 [![license](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
+
+> 🍴 本仓库是 [mcdona1d/panasonic_smart_china](https://github.com/mcdona1d/panasonic_smart_china) 的 fork，在原仓库基础上新增了品类代号 `0810` 的松下空气净化器（纳诺怡 X，型号 `F-93C0PJD`）支持。详见文末「本 fork 新增内容」。
 
 这是一个用于 Home Assistant 的松下中国区智能家电自定义集成，目标是逐步维护成面向“松下智能家电”中国区设备的核心 HA 集成仓库。
 
@@ -64,6 +66,7 @@
 | --- | --- | --- | --- |
 | `0900` | 风管机/中央空调 | `ducted_ac_0900` | 以 `CZ-RD501DW2` 线控器逻辑验证 |
 | `0820` | 风暖浴霸 | `bathroom_heater_0820_fv_rb20vl1` | 支持型号 `FV-RB20VL1`，设备 ID 后缀可能显示为 `Aircle-05-02` |
+| `0810` | 空气净化器 | `aircleaner_0810` | 支持型号 `F-93C0PJD`（纳诺怡 X），映射为 HA `fan` 实体 |
 
 其他品类和型号暂未声明支持。即使能在扫描中识别出来，也需要补充 profile/adapter 并完成真实设备验证后再开放。
 
@@ -171,6 +174,23 @@
 除非提交者明确标注 `Not a Contribution`，否则提交到本仓库的 Pull Request、issue、讨论、代码片段、设备 profile、adapter 和协议字段说明，均视为愿意按 Apache-2.0 授权给本项目使用。维护者可以基于这些内容提取、改写、合并设备适配逻辑，并发布到本仓库的后续版本中。
 
 如果你从本仓库 fork 或 clone 后公开发布了新的适配代码，只要这些代码仍按 Apache-2.0 或兼容许可发布，本项目也可以在保留必要版权和许可声明的前提下吸收相关适配逻辑。该许可不会强制 fork 主动回流代码；如果你希望设备适配进入主仓，请优先提交 Pull Request。
+
+## 本 fork 新增内容
+
+本仓库在原项目基础上新增了对品类代号 `0810` 松下空气净化器（纳诺怡 X，型号 `F-93C0PJD`）的支持。
+
+### 新增能力
+
+- 新增 profile `aircleaner_0810`：以型号 `F-93C0PJD` 声明支持，状态读取使用 `ADevGetStatusJDNeedsAP`。
+- 新增 HA `fan` 平台实体：支持开关机，以及 `Auto` / `Quiet` / `Medium` / `High` 四档风量（对应 `airVo` 0-3）。
+- 空气质量数据以实体属性暴露：PM2.5 浓度与等级、氧气含量与等级、异味、灰尘、过敏原等级、滤网寿命、nanoeX 状态、童锁、滤网提醒、自动托管等。
+- API 层支持凭证置于 `params` 内的请求格式（该品类端点与空调/浴霸端点报文结构不同）。
+- 配置流新增 `deviceMNO` 字段用于型号识别。
+
+### 使用注意
+
+- 若 HA 中已存在本集成的配置项，需要在集成选项中执行「重新扫描账号设备」才能识别新设备类型。
+- 控制指令（`runSta` 开关、`airVo` 风量）按同品类请求风格推断实现，建议结合真实抓包结果复核。
 
 ## 免责声明
 
