@@ -51,6 +51,7 @@ MODEL_FIELD_CANDIDATES = (
     "devSubTypeId",
     "devType",
     "deviceModel",
+    "deviceMNO",
     "model",
     "modelName",
     "productModel",

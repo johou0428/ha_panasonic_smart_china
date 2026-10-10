@@ -1,17 +1,22 @@
 """Shared device model definitions for Panasonic Smart China."""
 
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
 
 PLATFORM_CLIMATE = "climate"
+PLATFORM_FAN = "fan"
+PLATFORM_SENSOR = "sensor"
 
 ENTITY_KIND_DUCTED_AC = "ducted_ac"
 ENTITY_KIND_BATHROOM_HEATER = "bathroom_heater"
+ENTITY_KIND_AIRCLEANER = "aircleaner"
 
 PROTOCOL_AC_STATUS = "ac_status"
 PROTOCOL_BATHROOM_HEATER = "bathroom_heater"
+PROTOCOL_AIRCLEANER = "aircleaner"
 
 TOKEN_STRATEGY_DEVICE_ID_SHA512 = "device_id_sha512"
 
@@ -25,6 +30,9 @@ class PanasonicEndpoint:
     require_results: bool
     required_result_keys: frozenset[str] = frozenset()
     allow_non_json_response: bool = False
+    # Some endpoints (e.g. the 0810 air cleaner) expect the credentials nested
+    # inside a "params" object instead of being flattened at the top level.
+    params_wrapped: bool = False
 
 
 @dataclass(frozen=True)

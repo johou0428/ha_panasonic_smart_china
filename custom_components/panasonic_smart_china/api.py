@@ -140,12 +140,7 @@ class PanasonicApiClient:
         endpoint = profile.status_endpoint
         res = await self._post(
             self._endpoint_url(endpoint),
-            {
-                "id": endpoint.request_id,
-                "usrId": usr_id,
-                "deviceId": device_id,
-                "token": token,
-            },
+            self._build_status_payload(endpoint, usr_id, device_id, token),
             headers=self._control_headers(profile, device_id),
             require_results=endpoint.require_results,
             allow_non_json_response=endpoint.allow_non_json_response,
@@ -171,15 +166,14 @@ class PanasonicApiClient:
     ) -> dict[str, Any]:
         """Send status/control params for a supported device profile."""
         endpoint = profile.set_endpoint
+        payload = self._build_status_payload(endpoint, usr_id, device_id, token)
+        if endpoint.params_wrapped:
+            payload["params"].update(params)
+        else:
+            payload["params"] = params
         return await self._post(
             self._endpoint_url(endpoint),
-            {
-                "id": endpoint.request_id,
-                "usrId": usr_id,
-                "deviceId": device_id,
-                "token": token,
-                "params": params,
-            },
+            payload,
             headers=self._control_headers(profile, device_id),
             require_results=endpoint.require_results,
             allow_non_json_response=endpoint.allow_non_json_response,
@@ -262,6 +256,19 @@ class PanasonicApiClient:
 
     def _endpoint_url(self, endpoint: PanasonicEndpoint) -> str:
         return f"{BASE_URL}/{endpoint.path}"
+
+    def _build_status_payload(
+        self,
+        endpoint: PanasonicEndpoint,
+        usr_id: str,
+        device_id: str,
+        token: str,
+    ) -> dict[str, Any]:
+        """Build a status request payload honoring the endpoint wire format."""
+        credentials = {"usrId": usr_id, "deviceId": device_id, "token": token}
+        if endpoint.params_wrapped:
+            return {"id": endpoint.request_id, "params": credentials}
+        return {"id": endpoint.request_id, **credentials}
 
     def _control_headers(
         self,

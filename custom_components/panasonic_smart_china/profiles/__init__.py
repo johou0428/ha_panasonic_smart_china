@@ -9,12 +9,14 @@ from .bathroom_heater_0820_fv_rb20vl1 import (
     BATHROOM_HEATER_0820_FV_RB20VL1_PROFILE,
 )
 from .ducted_ac_0900 import DUCTED_AC_0900_PROFILE
+from .aircleaner_0810 import AIRCLEANER_0810_PROFILE
 
 SUPPORTED_PROFILES = {
     DUCTED_AC_0900_PROFILE.profile_id: DUCTED_AC_0900_PROFILE,
     BATHROOM_HEATER_0820_FV_RB20VL1_PROFILE.profile_id: (
         BATHROOM_HEATER_0820_FV_RB20VL1_PROFILE
     ),
+    AIRCLEANER_0810_PROFILE.profile_id: AIRCLEANER_0810_PROFILE,
 }
 
 SUPPORTED_CONTROLLERS = {
@@ -109,3 +111,6 @@ def find_profile_for_device_config(
         return next(iter(category_matches.values()))
 
     return None
+
+
+
