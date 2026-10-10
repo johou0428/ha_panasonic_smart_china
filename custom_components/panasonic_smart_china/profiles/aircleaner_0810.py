@@ -75,12 +75,17 @@ AIRCLEANER_0810_PROFILE = PanasonicProfile(
         required_result_keys=frozenset({"runSta"}),
         params_wrapped=True,
     ),
+    # Verified against a real F-93C0PJD: control commands are accepted with the
+    # credentials and the control params sent together inside "params". The
+    # server replies with {"results": {"todoId": <int>}} and delivers command
+    # to the device asynchronously.
     set_endpoint=PanasonicEndpoint(
-        path="ADevGetLocalSettingMidERV",
+        path="ADevSetStatusJDNeedsAP",
         request_id=9,
         require_results=False,
         params_wrapped=True,
     ),
     fan_mapping=AIR_VOLUME_MAPPING,
     safe_status_keys=SAFE_STATUS_KEYS,
+    cookie_required=True,
 )
