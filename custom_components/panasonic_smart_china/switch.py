@@ -51,12 +51,17 @@ def _as_int(value: Any) -> int | None:
 AIRCLEANER_SWITCHES: tuple[SwitchEntityDescription, ...] = (
     SwitchEntityDescription(key="nanoe", name="nanoeX", icon="mdi:atom"),
     SwitchEntityDescription(key="childLock", name="童锁", icon="mdi:lock"),
-    SwitchEntityDescription(key="lcdSwitch", name="显示屏", icon="mdi:monitor"),
+    # lcdSwitch drives the app's "亮度调节" (brightness) setting.
+    SwitchEntityDescription(
+        key="lcdSwitch", name="亮度调节", icon="mdi:brightness-6"
+    ),
     SwitchEntityDescription(
         key="autoCareRun", name="自动托管", icon="mdi:auto-fix"
     ),
+    # sensiOxy actually maps to the app's formaldehyde sensitivity setting
+    # (not oxygen). It is a 3-level option; see probe_sensitivity.py.
     SwitchEntityDescription(
-        key="sensiOxy", name="氧气灵敏度", icon="mdi:molecule-oxygen"
+        key="sensiOxy", name="甲醛灵敏度", icon="mdi:air-filter"
     ),
 )
 
