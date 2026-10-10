@@ -116,12 +116,10 @@ class PanasonicSwitch(CoordinatorEntity, SwitchEntity):
         coordinator = self.coordinator
         key = self.entity_description.key
 
-        current = dict(coordinator.data or {})
-        current[key] = value
-        safe_keys = coordinator.profile.safe_status_keys
-        payload = {k: v for k, v in current.items() if k in safe_keys}
-        # Never let the safe-key filter drop the value we intend to change.
-        payload[key] = value
+        # Send only the field being changed. Echoing the full status snapshot
+        # back re-applies stale values to unrelated settings (observed: a
+        # sensitivity write also flipped the brightness setting).
+        payload = {key: value}
 
         try:
             await coordinator.client.set_device_status(

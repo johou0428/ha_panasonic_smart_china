@@ -117,12 +117,13 @@ class PanasonicSensitivitySelect(CoordinatorEntity, SelectEntity):
         coordinator = self.coordinator
         key = self.entity_description.key
 
-        # Read-Modify-Write: keep every safe field, change only ours.
-        current = dict(coordinator.data or {})
-        current[key] = value
-        safe_keys = coordinator.profile.safe_status_keys
-        payload = {k: v for k, v in current.items() if k in safe_keys}
-        payload[key] = value
+        # Send only the field being changed.
+        #
+        # Echoing the whole status snapshot back (Read-Modify-Write) caused
+        # unrelated settings to be overwritten: the snapshot can be up to a
+        # poll interval old, and the device re-applies every field it is
+        # given, so writing `dust` also clobbered the brightness setting.
+        payload = {key: value}
 
         try:
             await coordinator.client.set_device_status(
