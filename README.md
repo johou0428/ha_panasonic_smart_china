@@ -1,7 +1,7 @@
 # Panasonic Smart China for Home Assistant
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![version](https://img.shields.io/badge/version-2.3.0-blue.svg)]()
+[![version](https://img.shields.io/badge/version-2.3.1-blue.svg)]()
 [![license](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 > 🍴 本仓库是 [mcdona1d/panasonic_smart_china](https://github.com/mcdona1d/panasonic_smart_china) 的 fork，在原仓库基础上新增了品类代号 `0810` 的松下空气净化器（纳诺怡 X，型号 `F-93C0PJD`）支持。详见文末「本 fork 新增内容」。
