@@ -116,10 +116,18 @@ class PanasonicSwitch(CoordinatorEntity, SwitchEntity):
         coordinator = self.coordinator
         key = self.entity_description.key
 
-        # Send only the field being changed. Echoing the full status snapshot
-        # back re-applies stale values to unrelated settings (observed: a
-        # sensitivity write also flipped the brightness setting).
-        payload = {key: value}
+        # The device only executes a command when it receives the full status
+        # payload, so Read-Modify-Write is required (a single-field write is
+        # accepted with a todoId but ignored by the device).
+        #
+        # Refresh first so the echoed values are current instead of stale.
+        await coordinator.async_refresh()
+
+        current = dict(coordinator.data or {})
+        current[key] = value
+        safe_keys = coordinator.profile.safe_status_keys
+        payload = {k: v for k, v in current.items() if k in safe_keys}
+        payload[key] = value
 
         try:
             await coordinator.client.set_device_status(
