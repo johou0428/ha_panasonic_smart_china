@@ -94,12 +94,8 @@ AIRCLEANER_SENSORS: tuple[PanasonicSensorEntityDescription, ...] = (
         icon="mdi:smog",
         value_map=LEVEL_MAP,
     ),
-    PanasonicSensorEntityDescription(
-        key="dust",
-        name="灰尘",
-        icon="mdi:weather-dust",
-        value_map=LEVEL_MAP,
-    ),
+    # "dust" is NOT a dust reading: it is the dust sensitivity setting
+    # (0=低 1=中 2=高) and is exposed by the select platform instead.
     PanasonicSensorEntityDescription(
         key="oxyC",
         name="氧气含量",

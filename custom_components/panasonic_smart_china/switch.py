@@ -58,11 +58,8 @@ AIRCLEANER_SWITCHES: tuple[SwitchEntityDescription, ...] = (
     SwitchEntityDescription(
         key="autoCareRun", name="自动托管", icon="mdi:auto-fix"
     ),
-    # sensiOxy actually maps to the app's formaldehyde sensitivity setting
-    # (not oxygen). It is a 3-level option; see probe_sensitivity.py.
-    SwitchEntityDescription(
-        key="sensiOxy", name="甲醛灵敏度", icon="mdi:air-filter"
-    ),
+    # sensiOxy is not exposed here: it is a 3-level formaldehyde sensitivity
+    # setting and lives on the select platform.
 )
 
 SWITCH_DESCRIPTIONS: dict[str, tuple[SwitchEntityDescription, ...]] = {

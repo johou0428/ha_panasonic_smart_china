@@ -10,6 +10,7 @@ PLATFORM_CLIMATE = "climate"
 PLATFORM_FAN = "fan"
 PLATFORM_SENSOR = "sensor"
 PLATFORM_SWITCH = "switch"
+PLATFORM_SELECT = "select"
 
 ENTITY_KIND_DUCTED_AC = "ducted_ac"
 ENTITY_KIND_BATHROOM_HEATER = "bathroom_heater"
