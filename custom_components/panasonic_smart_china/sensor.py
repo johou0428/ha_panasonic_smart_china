@@ -18,6 +18,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
     PERCENTAGE,
 )
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -57,6 +58,9 @@ def _as_int(value: Any) -> int | None:
 LEVEL_MAP = {0: "检出", 1: "中", 2: "优"}
 ON_OFF_MAP = {0: "关", 1: "开"}
 FILTER_REMIND_MAP = {0: "正常", 1: "需要更换"}
+# Sensitivity settings are read-only: writes are accepted by the cloud but
+# ignored by the device, so they are exposed as sensors (0=低 1=中 2=高).
+SENSITIVITY_MAP = {0: "低", 1: "中", 2: "高"}
 
 
 @dataclass(frozen=True)
@@ -65,6 +69,9 @@ class PanasonicSensorEntityDescription(SensorEntityDescription):
 
     value_map: dict[int, str] | None = None
     fallback_prefix: str | None = None
+    # Multiply the raw value by this before exposing it (e.g. formaldehyde
+    # reports 2 for 0.02 mg/m³).
+    scale: float | None = None
 
 
 AIRCLEANER_SENSORS: tuple[PanasonicSensorEntityDescription, ...] = (
@@ -96,15 +103,21 @@ AIRCLEANER_SENSORS: tuple[PanasonicSensorEntityDescription, ...] = (
     ),
     # "dust" is NOT a dust reading: it is the dust sensitivity setting
     # (0=低 1=中 2=高) and is exposed by the select platform instead.
+    # "oxy" is formaldehyde, not oxygen: the app renders oxyC as mg/m³
+    # (raw 2 -> 0.02 mg/m³, hence scale 0.01) and oxyLevel as its level.
     PanasonicSensorEntityDescription(
         key="oxyC",
-        name="氧气含量",
-        icon="mdi:molecule-oxygen",
+        name="甲醛浓度",
+        native_unit_of_measurement=CONCENTRATION_MILLIGRAMS_PER_CUBIC_METER,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=2,
+        scale=0.01,
+        icon="mdi:molecule",
     ),
     PanasonicSensorEntityDescription(
         key="oxyLevel",
-        name="氧气等级",
-        icon="mdi:molecule-oxygen",
+        name="甲醛等级",
+        icon="mdi:molecule",
         value_map=LEVEL_MAP,
     ),
     PanasonicSensorEntityDescription(
@@ -141,6 +154,29 @@ AIRCLEANER_SENSORS: tuple[PanasonicSensorEntityDescription, ...] = (
         icon="mdi:lock",
         value_map=ON_OFF_MAP,
         fallback_prefix="状态",
+    ),
+    # Sensitivity levels. Read-only: the cloud accepts writes for these but
+    # the device ignores them, so they are shown, not controlled.
+    PanasonicSensorEntityDescription(
+        key="sensiOxy",
+        name="甲醛灵敏度",
+        icon="mdi:tune-variant",
+        value_map=SENSITIVITY_MAP,
+        fallback_prefix="档位",
+    ),
+    PanasonicSensorEntityDescription(
+        key="dust",
+        name="灰尘灵敏度",
+        icon="mdi:tune-variant",
+        value_map=SENSITIVITY_MAP,
+        fallback_prefix="档位",
+    ),
+    PanasonicSensorEntityDescription(
+        key="gas",
+        name="气味灵敏度",
+        icon="mdi:tune-variant",
+        value_map=SENSITIVITY_MAP,
+        fallback_prefix="档位",
     ),
 )
 
@@ -185,6 +221,9 @@ class PanasonicSensor(CoordinatorEntity, SensorEntity):
             return None
         value_map = self.entity_description.value_map
         if value_map is None:
+            scale = self.entity_description.scale
+            if scale is not None:
+                return raw * scale
             return raw
         if raw in value_map:
             return value_map[raw]

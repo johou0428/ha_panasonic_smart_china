@@ -1,7 +1,7 @@
 # Panasonic Smart China for Home Assistant
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![version](https://img.shields.io/badge/version-2.3.6-blue.svg)]()
+[![version](https://img.shields.io/badge/version-2.3.7-blue.svg)]()
 [![license](https://img.shields.io/badge/license-Apache--2.0-green.svg)](LICENSE)
 
 > 🍴 本仓库是 [mcdona1d/panasonic_smart_china](https://github.com/mcdona1d/panasonic_smart_china) 的 fork，在原仓库基础上新增了品类代号 `0810` 的松下空气净化器（纳诺怡 X，型号 `F-93C0PJD`）支持。详见文末「本 fork 新增内容」。
@@ -183,10 +183,10 @@
 
 - 新增 profile `aircleaner_0810`：以型号 `F-93C0PJD` 声明支持，状态读取使用 `ADevGetStatusJDNeedsAP`。
 - 新增 HA `fan` 平台实体：支持开关机，以及 `Auto` / `Quiet` / `Medium` / `High` 四档风量（对应 `airVo` 0-3）。
-- 空气质量数据以**独立 sensor 实体**暴露：PM2.5 浓度与等级、滤网寿命、滤网提醒、氧气含量与等级、异味、过敏原等级、nanoeX、童锁、自动托管。等级类字段显示为「优 / 中 / 检出」，开关类字段显示为「开 / 关」。
+- 空气质量数据以**独立 sensor 实体**暴露：PM2.5 浓度与等级、甲醛浓度与等级、滤网寿命、滤网提醒、异味、过敏原等级、nanoeX、童锁、自动托管，以及三个灵敏度档位。等级类字段显示为「优 / 中 / 检出」，开关类显示为「开 / 关」，灵敏度显示为「低 / 中 / 高」。
 - 新增 `switch` 平台：nanoeX、童锁、亮度调节、自动托管。
-- 新增 `select` 平台：甲醛灵敏度、灰尘灵敏度、气味灵敏度，各三档「低 / 中 / 高」（设备编码 `0/1/2`）。
-- 传感器、开关、下拉框共用同一个轮询（60 秒刷新一次），不会因实体数量增加而放大请求量。
+- 甲醛 / 灰尘 / 气味灵敏度为**只读**：云端会签收这三个字段的写入，但设备并不执行，因此只能在 HA 中查看当前档位，无法调节。
+- 传感器与开关共用同一个轮询（60 秒刷新一次），不会因实体数量增加而放大请求量。
 - API 层支持凭证置于 `params` 内的请求格式（该品类端点与空调/浴霸端点报文结构不同）。
 - 配置流新增 `deviceMNO` 字段用于型号识别。
 
@@ -194,7 +194,7 @@
 
 - 若 HA 中已存在本集成的配置项，需要在集成选项中执行「重新扫描账号设备」才能识别新设备类型。
 - 控制指令（`runSta` 开关、`airVo` 风量）已在真实设备上验证：云端接受后会返回 `todoId`，为异步下发模式，指令通常在数秒内生效。
-- **暂不支持甲醛数据**：设备的状态接口 `ADevGetStatusJDNeedsAP` 共返回 39 个字段，其中没有任何甲醛相关字段，其余候选状态端点（`ADevGetStatusInfoJDNeedsAP`、`ADevGetStatusJD`、`ADevGetStatusAP`、`ADevGetStatusInfoAP`）均返回 404，因此无法从云端取得甲醛数值。
+- 协议中 `oxy` 前缀指的是**甲醛**而不是氧气：`oxyC` 为甲醛浓度（原始值需 ×0.01 换算为 mg/m³，例如 `2` 对应 App 显示的 `0.02 mg/m³`），`oxyLevel` 为甲醛等级，`sensiOxy` 为甲醛灵敏度。
 - `dust`、`gas`、`sensiOxy` 是**灵敏度设置**而不是传感器读数（通过在 App 中修改设置并对比设备状态确认），因此做成三档下拉；`gasC` 才是异味读数。
 - 云端对任意字段都会返回 `todoId`，签收回执**不能**作为"字段有效"的依据，本集成只保留经真实设备验证生效的实体。
 
